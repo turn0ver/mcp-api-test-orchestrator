@@ -1,0 +1,30 @@
+{
+  "name": "mcp-api-test-orchestrator",
+  "version": "1.0.0",
+  "description": "MCP server that reads API endpoint collections, generates Playwright API + Contract tests, and runs them.",
+  "type": "module",
+  "main": "dist/server.js",
+  "bin": {
+    "mcp-api-test-orchestrator": "dist/server.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx src/server.ts",
+    "test": "playwright test",
+    "test:report": "playwright show-report",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.27.1",
+    "ajv": "8.18.0",
+    "ajv-formats": "3.0.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.58.2",
+    "@types/node": "22.19.13",
+    "tsx": "4.21.0",
+    "typescript": "5.8.2"
+  }
+}
