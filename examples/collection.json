@@ -1,0 +1,183 @@
+{
+  "name": "JSONPlaceholder API",
+  "version": "1.0",
+  "description": "Example collection for https://jsonplaceholder.typicode.com — a free fake REST API for testing and prototyping.",
+  "baseUrl": "https://jsonplaceholder.typicode.com",
+  "defaultHeaders": [
+    { "key": "Accept", "value": "application/json" }
+  ],
+  "endpoints": [
+    {
+      "name": "List Posts",
+      "method": "GET",
+      "path": "/posts",
+      "description": "Returns an array of all posts.",
+      "expectedStatus": 200,
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["userId", "id", "title", "body"],
+          "properties": {
+            "userId": { "type": "integer" },
+            "id":     { "type": "integer" },
+            "title":  { "type": "string" },
+            "body":   { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "tags": ["posts", "read"]
+    },
+    {
+      "name": "Get Post by ID",
+      "method": "GET",
+      "path": "/posts/{id}",
+      "description": "Returns a single post identified by its ID.",
+      "pathParams": { "id": 1 },
+      "expectedStatus": 200,
+      "responseSchema": {
+        "type": "object",
+        "required": ["userId", "id", "title", "body"],
+        "properties": {
+          "userId": { "type": "integer" },
+          "id":     { "type": "integer" },
+          "title":  { "type": "string" },
+          "body":   { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "tags": ["posts", "read"]
+    },
+    {
+      "name": "Create Post",
+      "method": "POST",
+      "path": "/posts",
+      "description": "Creates a new post (returns 201 with the created resource).",
+      "expectedStatus": 201,
+      "body": {
+        "title": "foo",
+        "body": "bar",
+        "userId": 1
+      },
+      "responseSchema": {
+        "type": "object",
+        "required": ["id", "title", "body", "userId"],
+        "properties": {
+          "id":     { "type": "integer" },
+          "title":  { "type": "string" },
+          "body":   { "type": "string" },
+          "userId": { "type": "integer" }
+        }
+      },
+      "tags": ["posts", "write"]
+    },
+    {
+      "name": "Update Post",
+      "method": "PUT",
+      "path": "/posts/{id}",
+      "pathParams": { "id": 1 },
+      "description": "Full update of an existing post.",
+      "expectedStatus": 200,
+      "body": {
+        "id": 1,
+        "title": "updated title",
+        "body": "updated body",
+        "userId": 1
+      },
+      "responseSchema": {
+        "type": "object",
+        "required": ["id", "title", "body", "userId"],
+        "properties": {
+          "id":     { "type": "integer" },
+          "title":  { "type": "string" },
+          "body":   { "type": "string" },
+          "userId": { "type": "integer" }
+        }
+      },
+      "tags": ["posts", "write"]
+    },
+    {
+      "name": "Patch Post",
+      "method": "PATCH",
+      "path": "/posts/{id}",
+      "pathParams": { "id": 1 },
+      "description": "Partial update of an existing post.",
+      "expectedStatus": 200,
+      "body": { "title": "patched title" },
+      "tags": ["posts", "write"]
+    },
+    {
+      "name": "Delete Post",
+      "method": "DELETE",
+      "path": "/posts/{id}",
+      "pathParams": { "id": 1 },
+      "description": "Deletes an existing post.",
+      "expectedStatus": 200,
+      "tags": ["posts", "write"]
+    },
+    {
+      "name": "List Users",
+      "method": "GET",
+      "path": "/users",
+      "description": "Returns an array of all users.",
+      "expectedStatus": 200,
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["id", "name", "username", "email"],
+          "properties": {
+            "id":       { "type": "integer" },
+            "name":     { "type": "string" },
+            "username": { "type": "string" },
+            "email":    { "type": "string", "format": "email" }
+          }
+        }
+      },
+      "tags": ["users", "read"]
+    },
+    {
+      "name": "Get User by ID",
+      "method": "GET",
+      "path": "/users/{id}",
+      "pathParams": { "id": 1 },
+      "description": "Returns a single user.",
+      "expectedStatus": 200,
+      "responseSchema": {
+        "type": "object",
+        "required": ["id", "name", "username", "email"],
+        "properties": {
+          "id":       { "type": "integer" },
+          "name":     { "type": "string" },
+          "username": { "type": "string" },
+          "email":    { "type": "string", "format": "email" }
+        }
+      },
+      "tags": ["users", "read"]
+    },
+    {
+      "name": "List Comments for Post",
+      "method": "GET",
+      "path": "/posts/{id}/comments",
+      "pathParams": { "id": 1 },
+      "description": "Returns all comments for a given post.",
+      "expectedStatus": 200,
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["postId", "id", "name", "email", "body"],
+          "properties": {
+            "postId": { "type": "integer" },
+            "id":     { "type": "integer" },
+            "name":   { "type": "string" },
+            "email":  { "type": "string", "format": "email" },
+            "body":   { "type": "string" }
+          }
+        }
+      },
+      "tags": ["comments", "read"]
+    }
+  ]
+}
