@@ -1,119 +1,90 @@
-name: API Tests CI
+name: API Tests
 
 on:
+  # Trigger on push to main and pull requests
   push:
-    branches: ["main", "copilot/**"]
+    branches:
+      - main
   pull_request:
-    branches: ["main"]
+    branches:
+      - main
+  # Allow manual triggering with custom inputs
   workflow_dispatch:
     inputs:
       collection_path:
-        description: "Path to the collection JSON file"
+        description: 'Path to the collection JSON file'
+        required: true
+        default: './examples/collection.json'
+      test_filter:
+        description: 'Filter tests to run (e.g., "status,performance")'
         required: false
-        default: "examples/collection.json"
 
 jobs:
   api-tests:
-    name: Generate & Run API Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
+
+    strategy:
+      # Parallelize test execution (split into groups if needed)
+      matrix:
+        group: [1]
 
     steps:
-      # -----------------------------------------------------------------------
-      # 1. Checkout & Node setup
-      # -----------------------------------------------------------------------
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
+      # Step 2: Set up Node.js
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: "22"
-          cache: "npm"
+          node-version: 18
 
-      # -----------------------------------------------------------------------
-      # 2. Install dependencies
-      # -----------------------------------------------------------------------
+      # Step 3: Install dependencies
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      # -----------------------------------------------------------------------
-      # 3. Install Playwright browsers (API tests only need chromium engine-less runner)
-      # -----------------------------------------------------------------------
-      - name: Install Playwright
-        run: npx playwright install --with-deps chromium
-
-      # -----------------------------------------------------------------------
-      # 4. TypeScript type-check (lint)
-      # -----------------------------------------------------------------------
-      - name: Type-check (lint)
-        run: npm run lint
-
-      # -----------------------------------------------------------------------
-      # 5. Build the MCP server
-      # -----------------------------------------------------------------------
-      - name: Build
+      # Step 4: Build the project
+      - name: Build the MCP server
         run: npm run build
 
-      # -----------------------------------------------------------------------
-      # 6. Generate Playwright tests from the example collection via the
-      #    individual agent scripts (no MCP transport needed for CI)
-      # -----------------------------------------------------------------------
-      - name: Generate tests from collection
+      # Step 5: Generate tests
+      - name: Generate Playwright tests
         run: |
-          COLLECTION="${{ github.event.inputs.collection_path || 'examples/collection.json' }}"
-          node --import tsx/esm src/agents/run-generate.ts "$COLLECTION" tests/
-        env:
-          NODE_OPTIONS: ""
+          node --import tsx/esm src/agents/run-generate.ts ${{ inputs.collection_path }} tests/
 
-      # -----------------------------------------------------------------------
-      # 7. Run the generated Playwright tests
-      # -----------------------------------------------------------------------
+      # Step 6: Install Playwright browsers
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+
+      # Step 7: Run tests
       - name: Run Playwright tests
-        run: npm test -- --reporter=list,html,json
-        env:
-          CI: "true"
+        run: npm test
 
-      # -----------------------------------------------------------------------
-      # 8. Upload test artifacts
-      # -----------------------------------------------------------------------
-      - name: Upload Playwright HTML report
-        if: always()
-        uses: actions/upload-artifact@v4
+      # Step 8: Upload test artifacts (HTML report, logs, etc.)
+      - name: Upload Test Artifacts
+        uses: actions/upload-artifact@v3
         with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
+          name: test-results
+          path: ./tests/reports/
 
-      - name: Upload JSON results
-        if: always()
-        uses: actions/upload-artifact@v4
+      # Step 9: Post a comment on PR with test results (if failure)
+      - name: Post Test Results to PR
+        if: failure()
+        uses: actions/github-script@v6
         with:
-          name: test-results-json
-          path: test-results/results.json
-          retention-days: 30
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚨 API Tests Failed! Check the [HTML Report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}) for details.`
+            })
 
-      # -----------------------------------------------------------------------
-      # 9. Post a summary to the job
-      # -----------------------------------------------------------------------
-      - name: Summarise results
-        if: always()
-        run: |
-          echo "## API Test Results" >> "$GITHUB_STEP_SUMMARY"
-          if [ -f test-results/results.json ]; then
-            node --input-type=module << 'EOF'
-          import fs from "fs";
-          const data = JSON.parse(fs.readFileSync("test-results/results.json", "utf8"));
-          const s = data.stats || {};
-          console.log(`| Metric | Count |`);
-          console.log(`|--------|-------|`);
-          console.log(`| ✅ Passed  | ${s.expected  ?? 0} |`);
-          console.log(`| ❌ Failed  | ${s.unexpected ?? 0} |`);
-          console.log(`| ⏭ Skipped | ${s.skipped    ?? 0} |`);
-          console.log(`| ⏱ Duration | ${(s.duration ?? 0).toFixed(0)}ms |`);
-          EOF
-          else
-            echo "No results file found."
-          fi >> "$GITHUB_STEP_SUMMARY"
+      # Step 10: Notify Slack (optional)
+      - name: Notify Slack
+        if: failure()
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: 'C12345678'
+          text: '🚨 API Tests Failed! Check the GitHub Actions logs for details.'

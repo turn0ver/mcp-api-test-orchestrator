@@ -11,8 +11,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsx src/server.ts",
-    "test": "playwright test",
-    "test:report": "playwright show-report",
+    "test": "node --import tsx/esm src/agents/run-generate.ts examples/collection.json tests/ && npm run lint && npx playwright test && npm run test:report",
+    "test:report": "npx playwright show-report",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

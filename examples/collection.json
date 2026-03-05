@@ -1,183 +1,160 @@
 {
-  "name": "JSONPlaceholder API",
+  "name": "Petstore API",
   "version": "1.0",
-  "description": "Example collection for https://jsonplaceholder.typicode.com — a free fake REST API for testing and prototyping.",
-  "baseUrl": "https://jsonplaceholder.typicode.com",
+  "description": "Example collection for https://petstore.swagger.io — a sample API for managing pets in a store.",
+  "baseUrl": "https://petstore.swagger.io/v2",
   "defaultHeaders": [
     { "key": "Accept", "value": "application/json" }
   ],
   "endpoints": [
     {
-      "name": "List Posts",
+      "name": "List Pets",
       "method": "GET",
-      "path": "/posts",
-      "description": "Returns an array of all posts.",
+      "path": "/pet/findByStatus",
+      "description": "Finds pets by their status (available, pending, sold).",
+      "queryParams": [
+        { "key": "status", "value": "available" }
+      ],
       "expectedStatus": 200,
       "responseSchema": {
         "type": "array",
         "items": {
           "type": "object",
-          "required": ["userId", "id", "title", "body"],
+          "required": ["id", "name", "status"],
           "properties": {
-            "userId": { "type": "integer" },
-            "id":     { "type": "integer" },
-            "title":  { "type": "string" },
-            "body":   { "type": "string" }
-          },
-          "additionalProperties": false
+            "id": { "type": "integer" },
+            "name": { "type": "string" },
+            "status": { "type": "string", "enum": ["available", "pending", "sold"] }
+          }
         }
       },
-      "tags": ["posts", "read"]
+      "tags": ["pets", "read"]
     },
     {
-      "name": "Get Post by ID",
+      "name": "Get Pet by ID",
       "method": "GET",
-      "path": "/posts/{id}",
-      "description": "Returns a single post identified by its ID.",
-      "pathParams": { "id": 1 },
+      "path": "/pet/{petId}",
+      "description": "Returns a single pet by its ID.",
+      "pathParams": {
+        "petId": 1
+      },
       "expectedStatus": 200,
       "responseSchema": {
         "type": "object",
-        "required": ["userId", "id", "title", "body"],
+        "required": ["id", "name", "status"],
         "properties": {
-          "userId": { "type": "integer" },
-          "id":     { "type": "integer" },
-          "title":  { "type": "string" },
-          "body":   { "type": "string" }
-        },
-        "additionalProperties": false
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "status": { "type": "string", "enum": ["available", "pending", "sold"] }
+        }
       },
-      "tags": ["posts", "read"]
+      "tags": ["pets", "read"]
     },
     {
-      "name": "Create Post",
+      "name": "Add a New Pet",
       "method": "POST",
-      "path": "/posts",
-      "description": "Creates a new post (returns 201 with the created resource).",
-      "expectedStatus": 201,
+      "path": "/pet",
+      "description": "Adds a new pet to the store.",
+      "expectedStatus": 200,
       "body": {
-        "title": "foo",
-        "body": "bar",
-        "userId": 1
+        "id": 123,
+        "name": "Fluffy",
+        "status": "available"
       },
       "responseSchema": {
         "type": "object",
-        "required": ["id", "title", "body", "userId"],
+        "required": ["id", "name", "status"],
         "properties": {
-          "id":     { "type": "integer" },
-          "title":  { "type": "string" },
-          "body":   { "type": "string" },
-          "userId": { "type": "integer" }
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "status": { "type": "string", "enum": ["available", "pending", "sold"] }
         }
       },
-      "tags": ["posts", "write"]
+      "tags": ["pets", "write"]
     },
     {
-      "name": "Update Post",
+      "name": "Update an Existing Pet",
       "method": "PUT",
-      "path": "/posts/{id}",
-      "pathParams": { "id": 1 },
-      "description": "Full update of an existing post.",
+      "path": "/pet",
+      "description": "Updates an existing pet in the store.",
+      "expectedStatus": 200,
+      "body": {
+        "id": 123,
+        "name": "Fluffy Updated",
+        "status": "pending"
+      },
+      "responseSchema": {
+        "type": "object",
+        "required": ["id", "name", "status"],
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "status": { "type": "string", "enum": ["available", "pending", "sold"] }
+        }
+      },
+      "tags": ["pets", "write"]
+    },
+    {
+      "name": "Delete Pet",
+      "method": "DELETE",
+      "path": "/pet/{petId}",
+      "description": "Deletes a pet by its ID.",
+      "pathParams": {
+        "petId": 123
+      },
+      "expectedStatus": 200,
+      "tags": ["pets", "write"]
+    },
+    {
+      "name": "Place an Order",
+      "method": "POST",
+      "path": "/store/order",
+      "description": "Places an order for a pet.",
       "expectedStatus": 200,
       "body": {
         "id": 1,
-        "title": "updated title",
-        "body": "updated body",
-        "userId": 1
+        "petId": 123,
+        "quantity": 2,
+        "shipDate": "2026-03-05T12:00:00Z",
+        "status": "placed",
+        "complete": true
       },
       "responseSchema": {
         "type": "object",
-        "required": ["id", "title", "body", "userId"],
+        "required": ["id", "petId", "quantity", "status"],
         "properties": {
-          "id":     { "type": "integer" },
-          "title":  { "type": "string" },
-          "body":   { "type": "string" },
-          "userId": { "type": "integer" }
+          "id": { "type": "integer" },
+          "petId": { "type": "integer" },
+          "quantity": { "type": "integer" },
+          "shipDate": { "type": "string", "format": "date-time" },
+          "status": { "type": "string", "enum": ["placed", "approved", "delivered"] },
+          "complete": { "type": "boolean" }
         }
       },
-      "tags": ["posts", "write"]
+      "tags": ["store", "write"]
     },
     {
-      "name": "Patch Post",
-      "method": "PATCH",
-      "path": "/posts/{id}",
-      "pathParams": { "id": 1 },
-      "description": "Partial update of an existing post.",
-      "expectedStatus": 200,
-      "body": { "title": "patched title" },
-      "tags": ["posts", "write"]
-    },
-    {
-      "name": "Delete Post",
-      "method": "DELETE",
-      "path": "/posts/{id}",
-      "pathParams": { "id": 1 },
-      "description": "Deletes an existing post.",
-      "expectedStatus": 200,
-      "tags": ["posts", "write"]
-    },
-    {
-      "name": "List Users",
+      "name": "Get Order by ID",
       "method": "GET",
-      "path": "/users",
-      "description": "Returns an array of all users.",
-      "expectedStatus": 200,
-      "responseSchema": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "required": ["id", "name", "username", "email"],
-          "properties": {
-            "id":       { "type": "integer" },
-            "name":     { "type": "string" },
-            "username": { "type": "string" },
-            "email":    { "type": "string", "format": "email" }
-          }
-        }
+      "path": "/store/order/{orderId}",
+      "description": "Finds an order by its ID.",
+      "pathParams": {
+        "orderId": 1
       },
-      "tags": ["users", "read"]
-    },
-    {
-      "name": "Get User by ID",
-      "method": "GET",
-      "path": "/users/{id}",
-      "pathParams": { "id": 1 },
-      "description": "Returns a single user.",
       "expectedStatus": 200,
       "responseSchema": {
         "type": "object",
-        "required": ["id", "name", "username", "email"],
+        "required": ["id", "petId", "quantity", "status"],
         "properties": {
-          "id":       { "type": "integer" },
-          "name":     { "type": "string" },
-          "username": { "type": "string" },
-          "email":    { "type": "string", "format": "email" }
+          "id": { "type": "integer" },
+          "petId": { "type": "integer" },
+          "quantity": { "type": "integer" },
+          "shipDate": { "type": "string", "format": "date-time" },
+          "status": { "type": "string", "enum": ["placed", "approved", "delivered"] },
+          "complete": { "type": "boolean" }
         }
       },
-      "tags": ["users", "read"]
-    },
-    {
-      "name": "List Comments for Post",
-      "method": "GET",
-      "path": "/posts/{id}/comments",
-      "pathParams": { "id": 1 },
-      "description": "Returns all comments for a given post.",
-      "expectedStatus": 200,
-      "responseSchema": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "required": ["postId", "id", "name", "email", "body"],
-          "properties": {
-            "postId": { "type": "integer" },
-            "id":     { "type": "integer" },
-            "name":   { "type": "string" },
-            "email":  { "type": "string", "format": "email" },
-            "body":   { "type": "string" }
-          }
-        }
-      },
-      "tags": ["comments", "read"]
+      "tags": ["store", "read"]
     }
   ]
 }
